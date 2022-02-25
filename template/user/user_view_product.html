@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User - Booking</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<style>
+    #booking {
+        display: none;
+    }
+
+    #booking-date {
+        display: none;
+    }
+
+    input[type="submit"] {
+        margin-top: .5rem;
+        margin-left: 1.5rem;
+    }
+</style>
+
+<script>
+
+    function dateChecker() {
+        let bookingFrom = document.getElementById('booking-from').value;
+        let bookingTo = document.getElementById('booking-to').value;
+        let currentDate = new Date();
+        bookingFrom = new Date(bookingFrom);
+        bookingTo = new Date(bookingTo);
+        if (bookingFrom < currentDate || bookingTo < currentDate) {
+            alert("Choose anothere date");
+            location.reload();
+        }
+        else
+            calculateBookingPrice();
+    }
+
+
+    function calculateBookingPrice() {
+
+        const booking = document.getElementById('booking');
+        const bookingPrice = document.getElementById('booking-price').textContent / 7;
+
+        let bookingAmount = document.getElementById('booking-amount');
+        let bookingFrom = document.getElementById('booking-from').value;
+        let bookingTo = document.getElementById('booking-to').value;
+
+        bookingFrom = new Date(bookingFrom);
+        bookingTo = new Date(bookingTo);
+
+        let timeDifference = bookingTo.getTime() - bookingFrom.getTime();
+        let bookingDays = timeDifference / (1000 * 60 * 60 * 24);
+
+        if (bookingDays > 0) {
+            bookingAmount.textContent = parseInt(bookingPrice * bookingDays);
+            booking.style.display = 'inline-block';
+        } else {
+            document.getElementById('booking').textContent = "Enter a valid date";
+            booking.style.display = 'inline-block';
+            booking.style.color = 'red';
+        }
+
+        checkDateAvailability();
+    }
+
+    function checkDateAvailability() {
+        let bookingFrom = document.getElementById('booking-from').value;
+        let bookingTo = document.getElementById('booking-to').value;
+        let product_id = document.getElementById('product_id').value;
+
+        $.ajax({
+
+            url: '/check-date-availability/',
+            data:
+            {
+                'booking_from': bookingFrom,
+                'booking_to': bookingTo,
+                'product_id': product_id
+            },
+            datatype: 'json',
+            success: function (dateAvailabilty) {
+                if (dateAvailabilty.dateExist == 'true') {
+                    document.getElementById('date-checker').style.display = "block";
+                    document.getElementById('date-checker').style.color = "red";
+                    document.getElementById('date-checker').textContent = "Sorry!!! This Date is Already Taken!";
+                }
+                else {
+                    document.getElementById('date-checker').style.display = "block";
+                    document.getElementById('date-checker').style.color = "green";
+                    document.getElementById('date-checker').textContent = "This Date is Available!";
+                    document.getElementById('submit-btn').removeAttribute('disabled');
+                }
+            }
+        });
+    }
+
+
+
+
+</script>
+
+<body>
+    <div class="product-view-container">
+        {% for product in product_details %}
+        <div class="left-side">
+            <a href="/media/{{product.product_img}}">
+                <img src="/media/{{product.product_img}}" height="250px" width="300px" alt="product-image">
+            </a>
+        </div>
+        <div class="right-side">
+            <h1>{{product.product_name}}</h1>
+            <p>{{product.product_description}}</p>
+            <p>₹ <span id="booking-price">{{product.product_price}}</span> / week</p>
+            <form method="post" action="/user-view-product/" class="booking-form">
+                {% csrf_token %}
+                <input type="hidden" id="product_id" name="product_id" value="{{product.id}}">
+                <label for="booking-from">Booking From</label><br>
+                <input type="date" name="booking-from" id="booking-from" required><br>
+                <label for="booking-to">Booking To</label><br>
+                <input type="date" name="booking-to" id="booking-to" onchange="dateChecker()" required>
+                <p id="booking">Amount to pay : <span id="booking-amount"></span></p><br>
+                <p id="date-checker" style="display: none;"></p>
+
+                <input id="submit-btn" type="submit" value="BOOK NOW" disabled>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+
+</html>

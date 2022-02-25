@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller - Update Product</title>
+</head>
+
+<body>
+    {% for x in product_details %}
+    <form id="myform" method="post" action="/seller-update-product/" enctype="multipart/form-data">
+
+        {% csrf_token %}
+
+        <input type="hidden" name="product_id" value="{{x.id}}">
+
+        <label for="product_name">Product Name</label>
+        <input type="text" name="product_name" id="product_name" value="{{x.product_name}}" required><br>
+
+        <label for="product_img">Image</label>
+        <input type="file" name="product_img" id="product_img" value="{{x.product_img}}"><br>
+
+        <label for="product_price">Product Price</label>
+        <input type="number" name="product_price" id="product_price" value="{{x.product_price}}" required><br>
+
+        <label for="product_description">Description</label>
+        <input type="text" name="product_description" id="product_description" value="{{x.product_description}}"
+            required><br>
+
+        <input type="submit" value="Submit">
+    </form>
+    {% endfor %}
+</body>
+
+</html>
